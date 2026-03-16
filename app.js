@@ -18,8 +18,8 @@
   const PRESETS = [
     {
       name: 'Metronome', bpm: 120,
-      kick:  { subdivisions: 16, rotation: 0, beats: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-      snare: { subdivisions: 16, rotation: 0, beats: [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+      kick:  { subdivisions: 16, rotation: 0, beats: [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+      snare: { subdivisions: 16, rotation: 0, beats: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
       hihat: { subdivisions: 16, rotation: 0, beats: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0] },
     },
     {
