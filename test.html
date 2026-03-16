@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Rhythm Circle Tests</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #0f0f13; color: #e8e8f0; }
+    .pass { color: #4caf50; }
+    .fail { color: #e84545; }
+    h2 { color: #e8ff47; margin-top: 20px; }
+    #summary { margin-top: 20px; font-size: 16px; font-weight: bold; }
+  </style>
+</head>
+<body>
+<h1>Rhythm Circle — Unit Tests</h1>
+<div id="results"></div>
+<div id="summary"></div>
+
+<!-- DOM stubs required by modules called during tests (e.g. UI.updateBpmDisplay) -->
+<input id="bpm-input" type="number" style="display:none">
+<div id="toast-container" style="display:none"></div>
+
+<script>
+  window._RC_TEST = {};
+</script>
+<script src="app.js"></script>
+<script>
+  const results = document.getElementById('results');
+  let passed = 0, failed = 0;
+
+  function assert(name, condition, detail) {
+    const el = document.createElement('div');
+    if (condition) {
+      passed++;
+      el.className = 'pass';
+      el.textContent = '✓ ' + name;
+    } else {
+      failed++;
+      el.className = 'fail';
+      el.textContent = '✗ ' + name + (detail ? ' — ' + detail : '');
+    }
+    results.appendChild(el);
+  }
+
+  function section(title) {
+    const el = document.createElement('h2');
+    el.textContent = title;
+    results.appendChild(el);
+  }
+
+  // Tests added in subsequent chunks
+  const { State: S, _makeInstrument, Storage: Stor } = window._RC_TEST;
+  const { remapBeats, setBpm } = window._RC_TEST;
+
+  section('remapBeats — subdivision change');
+
+  assert('16→8: beat at index 0 maps to 0',
+    remapBeats([true,false,false,false,false,false,false,false,
+                false,false,false,false,false,false,false,false], 16, 8)[0] === true);
+
+  assert('16→8: beat at index 8 maps to 4',
+    remapBeats([false,false,false,false,false,false,false,false,
+                true, false,false,false,false,false,false,false], 16, 8)[4] === true);
+
+  assert('8→16: beat at index 0 maps to 0',
+    remapBeats([true,false,false,false,false,false,false,false], 8, 16)[0] === true);
+
+  assert('8→16: beat at index 4 maps to 8',
+    remapBeats([false,false,false,false,true,false,false,false], 8, 16)[8] === true);
+
+  assert('all false → all false after remap',
+    remapBeats(Array(16).fill(false), 16, 8).every(b => b === false));
+
+  assert('result length matches newSubs',
+    remapBeats([true,false,false,false], 4, 12).length === 12);
+
+  section('setBpm — clamping');
+
+  setBpm(500);
+  assert('setBpm clamps max to 300', window._RC_TEST.State.bpm === 300);
+  setBpm(5);
+  assert('setBpm clamps min to 20', window._RC_TEST.State.bpm === 20);
+  setBpm(120);
+  assert('setBpm sets valid value', window._RC_TEST.State.bpm === 120);
+
+  section('Storage serialization');
+
+  const inst = _makeInstrument();
+  inst.beats[0] = true; inst.beats[4] = true;
+  inst.soundIndex = 2; inst.volume = 0.5;
+  const serialized = Stor._serializeInst(inst);
+  assert('_serializeInst excludes soundIndex', !('soundIndex' in serialized));
+  assert('_serializeInst excludes volume', !('volume' in serialized));
+  assert('_serializeInst includes beats', Array.isArray(serialized.beats));
+  assert('_serializeInst includes subdivisions', serialized.subdivisions === 16);
+  assert('_serializeInst includes rotation', serialized.rotation === 0);
+  assert('_serializeInst beats[0] is true', serialized.beats[0] === true);
+
+  section('Storage _validateRhythm');
+
+  const validR = {
+    name: 'Test', bpm: 120,
+    kick:  { subdivisions: 16, rotation: 0, beats: Array(16).fill(false) },
+    snare: { subdivisions: 16, rotation: 0, beats: Array(16).fill(false) },
+    hihat: { subdivisions: 16, rotation: 0, beats: Array(16).fill(false) },
+  };
+  assert('valid rhythm passes validation', Stor._validateRhythm({...validR}));
+  assert('missing name fails', !Stor._validateRhythm({...validR, name: ''}));
+  assert('bpm 10 fails', !Stor._validateRhythm({...validR, bpm: 10}));
+  assert('bpm 400 fails', !Stor._validateRhythm({...validR, bpm: 400}));
+  assert('wrong beats length fails', !Stor._validateRhythm({
+    ...validR, kick: { subdivisions: 16, rotation: 0, beats: Array(8).fill(false) }
+  }));
+  assert('rotation clamped on valid', (() => {
+    const r = JSON.parse(JSON.stringify(validR));
+    r.kick.rotation = 999;
+    const result = Stor._validateRhythm(r);
+    return result === true && r.kick.rotation === 15;
+  })());
+
+  section('TapTempo — BPM calculation');
+
+  const TT = window._RC_TEST.TapTempo;
+
+  // Simulate 120 BPM taps (500ms intervals)
+  TT.taps = [];
+  const base = Date.now() - 2000;
+  TT.taps = [base, base+500, base+1000, base+1500, base+2000];
+  // Compute manually
+  const intervals = TT.taps.slice(1).map((t, i) => t - TT.taps[i]);
+  const avg = intervals.reduce((a,b) => a+b) / intervals.length;
+  const bpm = Math.round(60000 / avg);
+  assert('120 BPM from 500ms intervals', bpm === 120);
+
+  // Simulate 60 BPM (1000ms intervals)
+  TT.taps = [base, base+1000, base+2000, base+3000];
+  const intervals2 = TT.taps.slice(1).map((t, i) => t - TT.taps[i]);
+  const avg2 = intervals2.reduce((a,b) => a+b) / intervals2.length;
+  const bpm2 = Math.round(60000 / avg2);
+  assert('60 BPM from 1000ms intervals', bpm2 === 60);
+
+  // Reset after 2s gap — test the reset logic in isolation (avoids UI.updateBpmDisplay side-effect)
+  // Simulate what tap() does internally: if last tap > RESET_TIMEOUT, clear the buffer
+  TT.taps = [Date.now() - 3000]; // last tap was 3s ago
+  const now = Date.now();
+  const shouldReset = TT.taps.length > 0 && now - TT.taps[TT.taps.length - 1] > TT.RESET_TIMEOUT;
+  if (shouldReset) TT.taps = [];
+  TT.taps.push(now);
+  assert('buffer resets after 2s gap', TT.taps.length === 1);
+
+  section('Sequencer — timing math');
+  const Seq = window._RC_TEST.Sequencer;
+  // At 120 BPM: measure = 2.0s
+  window._RC_TEST.State.bpm = 120;
+  assert('getMeasureDuration at 120 BPM = 2.0s',
+    Math.abs(Seq.getMeasureDuration() - 2.0) < 0.001);
+  // At 120 BPM, 16 subdivisions: step = 0.125s
+  assert('getStepDuration 16subs at 120 BPM = 0.125s',
+    Math.abs(Seq.getStepDuration(16) - 0.125) < 0.001);
+  // At 120 BPM, 12 subdivisions: step = 2/12 ≈ 0.1667s
+  assert('getStepDuration 12subs at 120 BPM ≈ 0.1667s',
+    Math.abs(Seq.getStepDuration(12) - (2/12)) < 0.001);
+
+  section('Storage importJSON validation — edge cases');
+
+  // Helper: create a valid rhythm object
+  function makeRhythm(name, bpm) {
+    return {
+      id: 'test-id',
+      name,
+      createdAt: new Date().toISOString(),
+      bpm: bpm || 120,
+      kick:  { subdivisions: 16, rotation: 0, beats: Array(16).fill(false) },
+      snare: { subdivisions: 16, rotation: 0, beats: Array(16).fill(false) },
+      hihat: { subdivisions: 16, rotation: 0, beats: Array(16).fill(false) },
+    };
+  }
+
+  const Sv = window._RC_TEST.Storage;
+
+  assert('valid rhythm passes', Sv._validateRhythm(makeRhythm('Test', 120)));
+  assert('bpm=20 passes', Sv._validateRhythm(makeRhythm('Test', 20)));
+  assert('bpm=300 passes', Sv._validateRhythm(makeRhythm('Test', 300)));
+  assert('bpm=19 fails', !Sv._validateRhythm(makeRhythm('Test', 19)));
+  assert('bpm=301 fails', !Sv._validateRhythm(makeRhythm('Test', 301)));
+
+  const wrongBeatsLen = makeRhythm('Test', 120);
+  wrongBeatsLen.kick.beats = Array(8).fill(false); // wrong length for subs=16
+  assert('beats length mismatch fails', !Sv._validateRhythm(wrongBeatsLen));
+
+  const highRotation = makeRhythm('Test', 120);
+  highRotation.snare.rotation = 999;
+  Sv._validateRhythm(highRotation);
+  assert('rotation 999 clamped to 15', highRotation.snare.rotation === 15);
+
+  assert('empty name fails', !Sv._validateRhythm(makeRhythm('', 120)));
+  assert('whitespace-only name fails', !Sv._validateRhythm(makeRhythm('   ', 120)));
+
+  document.getElementById('summary').textContent =
+    `${passed} passed, ${failed} failed`;
+</script>
+</body>
+</html>

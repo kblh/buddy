@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zadání: Rhythm Circle App</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0f0f13;
+    --surface: #1a1a22;
+    --surface2: #22222e;
+    --border: #2e2e3e;
+    --accent: #e8ff47;
+    --accent2: #ff6b6b;
+    --accent3: #47d4ff;
+    --text: #e8e8f0;
+    --text-muted: #888899;
+    --mono: 'Space Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    padding: 0;
+  }
+
+  .cover {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 64px 80px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    opacity: 0.15;
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    opacity: 0.25;
+  }
+  .cover-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .cover h1 {
+    font-family: var(--mono);
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    color: #fff;
+  }
+  .cover h1 span { color: var(--accent); }
+  .cover-sub {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin-bottom: 32px;
+  }
+  .meta-grid {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .meta-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+  .meta-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .meta-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: #000;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 2px;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 80px 80px;
+  }
+
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 32px 40px;
+    margin: 48px 0;
+  }
+  .toc-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .toc ol {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 40px;
+    counter-reset: toc;
+  }
+  .toc ol li {
+    counter-increment: toc;
+    font-size: 14px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .toc ol li::before {
+    content: counter(toc, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    opacity: 0.7;
+    min-width: 24px;
+  }
+  .toc ol li a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .toc ol li a:hover { color: var(--accent); }
+
+  section {
+    margin-top: 56px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    opacity: 0.7;
+    letter-spacing: 0.1em;
+    padding-bottom: 2px;
+  }
+  .section-title {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+  }
+
+  h3 {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 28px 0 12px;
+  }
+
+  p { color: var(--text-muted); margin-bottom: 12px; }
+  p strong { color: var(--text); font-weight: 500; }
+
+  ul, ol {
+    padding-left: 20px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  li { margin-bottom: 6px; }
+  li strong { color: var(--text); font-weight: 500; }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 24px;
+  }
+  .card-icon {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+  .card-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .card-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .card.accent { border-color: var(--accent); background: rgba(232,255,71,0.04); }
+  .card.blue { border-color: var(--accent3); background: rgba(71,212,255,0.04); }
+  .card.red { border-color: var(--accent2); background: rgba(255,107,107,0.04); }
+
+  .feature-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  .feature-table thead tr {
+    border-bottom: 2px solid var(--accent);
+  }
+  .feature-table th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-transform: uppercase;
+    text-align: left;
+    padding: 8px 16px 8px 0;
+  }
+  .feature-table td {
+    padding: 10px 16px 10px 0;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .feature-table td:first-child {
+    color: var(--text);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-weight: 700;
+  }
+  .badge-must { background: rgba(255,107,107,0.2); color: var(--accent2); }
+  .badge-should { background: rgba(71,212,255,0.2); color: var(--accent3); }
+  .badge-nice { background: rgba(232,255,71,0.15); color: var(--accent); }
+
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 7px;
+    border-radius: 3px;
+    color: var(--accent);
+  }
+
+  pre {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent3);
+    border-radius: 4px;
+    padding: 20px 24px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text);
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  pre .comment { color: var(--text-muted); }
+  pre .key { color: var(--accent3); }
+  pre .val { color: var(--accent); }
+
+  .callout {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    background: rgba(232,255,71,0.05);
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .callout.info {
+    border-left-color: var(--accent3);
+    background: rgba(71,212,255,0.05);
+  }
+  .callout.warn {
+    border-left-color: var(--accent2);
+    background: rgba(255,107,107,0.05);
+  }
+  .callout strong {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+    color: var(--accent);
+  }
+  .callout.info strong { color: var(--accent3); }
+  .callout.warn strong { color: var(--accent2); }
+
+  .rhythm-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .rhythm-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .rhythm-item span {
+    font-size: 10px;
+    color: var(--accent);
+    opacity: 0.7;
+  }
+
+  .structure-tree {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 2;
+    padding: 20px 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-muted);
+    margin: 16px 0;
+  }
+  .structure-tree .dir { color: var(--accent3); }
+  .structure-tree .file { color: var(--text); }
+  .structure-tree .comment { color: var(--text-muted); opacity: 0.5; font-size: 11px; }
+
+  footer {
+    margin-top: 80px;
+    padding: 32px 80px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  footer span { color: var(--accent); }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    .cover { background: #f5f5f5; border-color: #333; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="cover-tag">Technické zadání — webová aplikace</div>
+  <h1>Rhythm <span>Circle</span><br>App</h1>
+  <p class="cover-sub">Interaktivní vizualizér rytmů postavený na principu euklidovských rytmů a cirkulárních sekvencerů. Plnohodnotná alternativa k rhythm-circle.com s rozšířenými funkcemi.</p>
+  <div class="meta-grid">
+    <div class="meta-item">
+      <div class="meta-label">Stack</div>
+      <div class="meta-value">HTML + CSS + Vanilla JS</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Verze</div>
+      <div class="meta-value">1.0</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Datum</div>
+      <div class="meta-value">Březen 2026</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Priorita</div>
+      <div class="meta-badge">PRODUKCE</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <div class="toc-title">Obsah</div>
+    <ol>
+      <li><a href="#overview">Přehled projektu</a></li>
+      <li><a href="#architecture">Architektura souborů</a></li>
+      <li><a href="#core">Jádro — Circle Engine</a></li>
+      <li><a href="#drums">Bicí nástroje a zvuky</a></li>
+      <li><a href="#tempo">Tempo a Tap BPM</a></li>
+      <li><a href="#presets">Přednastavené rytmy</a></li>
+      <li><a href="#storage">Ukládání dat (localStorage)</a></li>
+      <li><a href="#import-export">Import / Export</a></li>
+      <li><a href="#ui">UI / UX požadavky</a></li>
+      <li><a href="#data-model">Datový model</a></li>
+    </ol>
+  </div>
+
+  <!-- SECTION 1 -->
+  <section id="overview">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <div class="section-title">Přehled projektu</div>
+    </div>
+
+    <p>Aplikace je <strong>interaktivní cirkulární sekvencer</strong> pro tvorbu a přehrávání bicích rytmů. Základní princip vychází z vizualizace bicích vzorů jako bodů rozmístěných na kružnici — tzv. <strong>Euclidean rhythm / rhythm necklace</strong> model.</p>
+
+    <div class="card-grid">
+      <div class="card accent">
+        <div class="card-icon">🎵</div>
+        <div class="card-title">Cirkulární sekvencer</div>
+        <div class="card-desc">3 soustředné kružnice (Snare, Kick, Hi-Hat), každá s nastavitelným počtem subdivizí a rotací.</div>
+      </div>
+      <div class="card blue">
+        <div class="card-icon">🔊</div>
+        <div class="card-title">Vícenásobné zvuky</div>
+        <div class="card-desc">Každý nástroj má výběr ze 3+ zvuků načtených přes Web Audio API, přepínání za chodu.</div>
+      </div>
+      <div class="card red">
+        <div class="card-icon">💾</div>
+        <div class="card-title">Perzistence dat</div>
+        <div class="card-desc">Uložení vlastních rytmů s názvem do localStorage, pojmenování, smazání, aktivace.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">👆</div>
+        <div class="card-title">Tap Tempo</div>
+        <div class="card-desc">Měření BPM tapováním / klepáním, klávesnicí i myší, s průměrováním posledních tahů.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📤</div>
+        <div class="card-title">Import / Export</div>
+        <div class="card-desc">Export všech uložených rytmů do JSON souboru, import zpět — zachování pojmenování.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📱</div>
+        <div class="card-title">Responzivita</div>
+        <div class="card-desc">Funkční na desktopu i tabletu, SVG canvas se škáluje, ovládání dotykem.</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <strong>Inspirace</strong>
+      Referenční implementace: <strong>https://rhythm-circle.com/</strong> — funkcionálně podobná, ale tato aplikace přidává: výběr zvuků, Tap Tempo, pojmenované uložené rytmy a import/export.
+    </div>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section id="architecture">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <div class="section-title">Architektura souborů</div>
+    </div>
+
+    <p>Aplikace je <strong>single-page, no-build</strong> — jeden HTML soubor s inline CSS a JS, nebo maximálně 3 oddělené soubory:</p>
+
+    <div class="structure-tree">
+      <span class="dir">rhythm-circle/</span><br>
+      &nbsp;&nbsp;<span class="file">index.html</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// hlavní soubor, veškerá struktura</span><br>
+      &nbsp;&nbsp;<span class="file">style.css</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// volitelné, může být inline v &lt;style&gt;</span><br>
+      &nbsp;&nbsp;<span class="file">app.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// volitelné, může být inline v &lt;script&gt;</span><br>
+      &nbsp;&nbsp;<span class="dir">sounds/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// WAV / MP3 soubory (nebo Base64 inline)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">kick-01.wav</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">kick-02.wav</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">kick-03.wav</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">snare-01.wav</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">snare-02.wav</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">snare-03.wav</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">hihat-01.wav</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">hihat-02.wav</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">hihat-03.wav</span>
+    </div>
+
+    <div class="callout warn">
+      <strong>Zvuky bez externích dependencí</strong>
+      Zvuky generovat <strong>programaticky přes Web Audio API</strong> (oscilátory + envelope) pokud není k dispozici CDN. Alternativně Base64-encode WAV soubory přímo do JS. Žádné npm balíčky, žádný bundler.
+    </div>
+
+    <h3>Technické závislosti</h3>
+    <ul>
+      <li>Žádné JS frameworky (React, Vue, Angular) — <strong>čistý Vanilla JS</strong></li>
+      <li>Žádné CSS frameworky (Tailwind, Bootstrap)</li>
+      <li>Žádné npm balíčky — vše musí běžet otevřením <code>index.html</code> v prohlížeči</li>
+      <li>Web Audio API pro generování/přehrávání zvuků (nativní)</li>
+      <li>SVG nebo Canvas pro kreslení kružnic a bodů</li>
+      <li><code>localStorage</code> pro persistenci dat</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section id="core">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <div class="section-title">Jádro — Circle Engine</div>
+    </div>
+
+    <p>Základem aplikace je <strong>vizuální cirkulární sekvencer</strong> vykreslený jako SVG element. Tři soustředné kružnice reprezentují tři bicí nástroje.</p>
+
+    <h3>Vizuální struktura</h3>
+    <table class="feature-table">
+      <thead><tr><th>Vrstva</th><th>Barva</th><th>Popis</th></tr></thead>
+      <tbody>
+        <tr><td>Hi-Hat (vnější)</td><td><code>#5b9bd5</code> modrá</td><td>Největší kružnice, výchozí 16 subdivizí</td></tr>
+        <tr><td>Snare (střední)</td><td><code>#e84545</code> červená</td><td>Střední kružnice, výchozí 16 subdivizí</td></tr>
+        <tr><td>Kick (vnitřní)</td><td><code>#4caf50</code> zelená</td><td>Nejmenší kružnice, výchozí 16 subdivizí</td></tr>
+        <tr><td>Playhead (jehla)</td><td><code>#222</code> / bílá</td><td>Rotující linka od středu nahoru, animovaná CSS/JS</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Body (beats / nody)</h3>
+    <p>Na každé kružnici je rozmístěno N bodů rovnoměrně (subdivize). Každý bod má dva stavy:</p>
+    <ul>
+      <li><strong>Neaktivní:</strong> šedý kruh s outline (<code>#aaa</code>)</li>
+      <li><strong>Aktivní (hit):</strong> vyplněný kruh barvou daného nástroje</li>
+    </ul>
+    <p>Klik na bod přepíná jeho stav (toggle). Pohyb playheadu spouští zvuk při přechodu přes aktivní bod.</p>
+
+    <h3>Playhead animace</h3>
+    <ul>
+      <li>Linka rotuje od 12:00 (–90°) po směru hodinových ručiček o 360° za dobu 1 taktu</li>
+      <li>Rychlost odvozena z BPM: <code>1 takt = (60 / BPM) * beatsPerBar sekund</code></li>
+      <li>Implementace přes <code>requestAnimationFrame</code> — <strong>ne</strong> CSS animace (potřeba synchronizace se zvukem)</li>
+      <li>Vizuální "flash" na aktivním bodu při průchodu playheadu</li>
+    </ul>
+
+    <h3>Subdivize a rotace</h3>
+    <ul>
+      <li>Každý nástroj má vlastní nastavení: <strong>Subdivisions</strong> (počet bodů) a <strong>Rotation</strong> (posun vzoru)</li>
+      <li>Subdivize: rozsah <code>2–32</code>, tlačítka –/+ nebo přímý input</li>
+      <li>Rotace: posun celého vzoru o N kroků doprava/doleva, tlačítka –/+</li>
+      <li>Při změně subdivizí se zachová poměr aktivních bodů (nebo reset)</li>
+    </ul>
+
+    <div class="callout">
+      <strong>Výkonnost</strong>
+      Překreslovat SVG jen při změně stavu (ne každý frame). Playhead je buď CSS transform nebo samostatný SVG element aktualizovaný v rAF smyčce. Cíl: plynulé 60fps i na středním HW.
+    </div>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section id="drums">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <div class="section-title">Bicí nástroje a zvuky</div>
+    </div>
+
+    <p>Každý ze tří nástrojů (Kick, Snare, Hi-Hat) musí mít <strong>minimálně 3 různé zvuky</strong> k dispozici a možnost jejich přepínání nezávisle.</p>
+
+    <h3>Zvukový systém — Web Audio API</h3>
+    <p>Zvuky generovat <strong>programaticky</strong> bez externích souborů (fallback), nebo načítat z <code>sounds/</code> adresáře. Preferovat syntetické zvuky — reprodukovatelné a bez licenčních problémů.</p>
+
+    <table class="feature-table">
+      <thead><tr><th>Nástroj</th><th>Zvuk</th><th>Popis syntetizace</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="3"><strong>Kick Drum</strong></td><td>Kick Classic</td><td>Sinus 60Hz → 30Hz, rychlý pokles, krátká délka ~0.3s</td></tr>
+        <tr><td>Kick Deep</td><td>Sinus 80Hz → 40Hz, pomalejší pokles, více basů</td></tr>
+        <tr><td>Kick Punchy</td><td>Trojúhelník 100Hz + šum, ostrý attack</td></tr>
+        <tr><td rowspan="3"><strong>Snare Drum</strong></td><td>Snare Classic</td><td>Šum + sinus 200Hz, envelope s krátkým decayem ~0.2s</td></tr>
+        <tr><td>Snare Tight</td><td>Šum kratší, více mid-freq, mechanický zvuk</td></tr>
+        <tr><td>Snare Rimshot</td><td>Ostrý klik + krátký šum, vyšší pitch</td></tr>
+        <tr><td rowspan="3"><strong>Hi-Hat</strong></td><td>HH Closed</td><td>Filtrovaný šum HPF 8kHz, velmi krátký ~0.05s</td></tr>
+        <tr><td>HH Open</td><td>Filtrovaný šum HPF 6kHz, delší decay ~0.3s</td></tr>
+        <tr><td>HH Ride</td><td>Metalický šum + partial harmonics, střední délka</td></tr>
+      </tbody>
+    </table>
+
+    <h3>UI přepínání zvuků</h3>
+    <ul>
+      <li>Pod každým nástrojem jsou 3 tlačítka (nebo select dropdown) pro výběr zvuku</li>
+      <li>Aktivní zvuk je vizuálně označen (zvýraznění tlačítka)</li>
+      <li>Přepnutí se projeví okamžitě od dalšího hitu — bez nutnosti zastavit přehrávání</li>
+      <li>Výběr zvuku se ukládá do localStorage jako součást globálního nastavení</li>
+    </ul>
+
+    <h3>Hlasitost</h3>
+    <ul>
+      <li>Globální volume slider (master)</li>
+      <li>Volitelně: individuální volume pro každý nástroj (slider nebo knob)</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 5 -->
+  <section id="tempo">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <div class="section-title">Tempo a Tap BPM</div>
+    </div>
+
+    <p>Tempo musí být nastavitelné <strong>třemi způsoby</strong>:</p>
+
+    <div class="card-grid">
+      <div class="card accent">
+        <div class="card-icon">⌨️</div>
+        <div class="card-title">Číselný input</div>
+        <div class="card-desc">Přímý vstup BPM hodnoty. Rozsah 20–300 BPM. Potvrzení Enterem nebo onBlur.</div>
+      </div>
+      <div class="card blue">
+        <div class="card-icon">🖱️</div>
+        <div class="card-title">Tap / Click plocha</div>
+        <div class="card-desc">Velká klikatelná plocha. Každý klik = jeden beat. Průměr z posledních 4–8 klepnutí.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">⬆️⬇️</div>
+        <div class="card-title">Slider / Šipky</div>
+        <div class="card-desc">Volitelný range slider nebo tlačítka +/– pro jemné ladění o 1 BPM.</div>
+      </div>
+    </div>
+
+    <h3>Tap Tempo — specifikace</h3>
+    <ul>
+      <li>Tlačítko / plocha označená <strong>"TAP"</strong> — výrazná, velká, snadno kliknutelná</li>
+      <li>Také reaguje na stisk klávesy <code>Space</code> nebo <code>T</code></li>
+      <li>Algoritmus: ukládat timestamp každého tapu, počítat průměr intervalů z posledních N tapů (doporučeno 4–8)</li>
+      <li>Reset bufferu po 2 sekundách nečinnosti (nový začátek měření)</li>
+      <li>Minimálně 2 tapy pro výpočet, zobrazit "TAP..." dokud není dostatek dat</li>
+      <li>Po výpočtu: okamžitě aplikovat nové BPM do sekvenceru</li>
+      <li>Vizuální feedback: plocha pulzuje/bliká při každém tapu</li>
+    </ul>
+
+    <pre><span class="comment">// Pseudokód Tap Tempo algoritmu</span>
+<span class="key">const</span> taps = [];
+<span class="key">const</span> MAX_TAPS = 8;
+<span class="key">const</span> RESET_TIMEOUT = 2000; <span class="comment">// ms</span>
+
+<span class="key">function</span> onTap() {
+  <span class="key">const</span> now = Date.now();
+  <span class="key">if</span> (taps.length > 0 &amp;&amp; now - taps.at(-1) > RESET_TIMEOUT) {
+    taps.length = 0; <span class="comment">// reset po pauze</span>
+  }
+  taps.push(now);
+  <span class="key">if</span> (taps.length > MAX_TAPS) taps.shift();
+  <span class="key">if</span> (taps.length >= 2) {
+    <span class="key">const</span> intervals = taps.slice(1).map((t, i) => t - taps[i]);
+    <span class="key">const</span> avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
+    <span class="key">const</span> bpm = Math.round(<span class="val">60000</span> / avgInterval);
+    applyBPM(Math.min(<span class="val">300</span>, Math.max(<span class="val">20</span>, bpm)));
+  }
+}</pre>
+
+    <h3>Hertz — synchronizace časování</h3>
+    <ul>
+      <li>Schedulovat zvukové eventy do <strong>budoucnosti</strong> přes <code>AudioContext.currentTime</code> pro přesné načasování</li>
+      <li>Lookahead ~100ms, scheduling interval ~25ms (standard Web Audio scheduler pattern)</li>
+      <li>Vyhnout se <code>setTimeout</code> pro zvukové triggery — driftuje</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 6 -->
+  <section id="presets">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <div class="section-title">Přednastavené rytmy (Presets)</div>
+    </div>
+
+    <p>Aplikace obsahuje <strong>sadu vestavěných rytmů</strong> (read-only), stejně jako v referenční implementaci. Uživatel je může aktivovat, ale ne přepsat (jsou oddělené od uložených).</p>
+
+    <div class="rhythm-list">
+      <div class="rhythm-item">Tresillo <span>3/8</span></div>
+      <div class="rhythm-item">Son Clave <span>3/2</span></div>
+      <div class="rhythm-item">Shiko <span>4/4</span></div>
+      <div class="rhythm-item">Soukous <span>4/4</span></div>
+      <div class="rhythm-item">Rumba <span>4/4</span></div>
+      <div class="rhythm-item">Bossa Nova <span>4/4</span></div>
+      <div class="rhythm-item">Gahu <span>4/4</span></div>
+      <div class="rhythm-item">Samba <span>4/4</span></div>
+      <div class="rhythm-item">Fume-fume <span>12/8</span></div>
+      <div class="rhythm-item">Bembé <span>12/8</span></div>
+      <div class="rhythm-item">Steve Reich <span>12/8</span></div>
+      <div class="rhythm-item">Basic 1–4 <span>4/4</span></div>
+    </div>
+
+    <h3>Datová struktura presetu</h3>
+    <p>Každý preset definuje pro každý nástroj: <strong>počet subdivizí</strong>, <strong>aktivní bity</strong> (jako pole 0/1), a volitelně <strong>rotaci</strong>.</p>
+
+    <pre>{
+  <span class="key">"name"</span>: <span class="val">"Bossa Nova"</span>,
+  <span class="key">"bpm"</span>: <span class="val">120</span>,
+  <span class="key">"kick"</span>:  { <span class="key">"subdivisions"</span>: <span class="val">16</span>, <span class="key">"rotation"</span>: <span class="val">0</span>, <span class="key">"beats"</span>: [1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0] },
+  <span class="key">"snare"</span>: { <span class="key">"subdivisions"</span>: <span class="val">16</span>, <span class="key">"rotation"</span>: <span class="val">0</span>, <span class="key">"beats"</span>: [0,0,1,0,0,0,1,0,0,0,0,1,0,0,1,0] },
+  <span class="key">"hihat"</span>: { <span class="key">"subdivisions"</span>: <span class="val">16</span>, <span class="key">"rotation"</span>: <span class="val">0</span>, <span class="key">"beats"</span>: [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0] }
+}</pre>
+
+    <h3>UI pro presety</h3>
+    <ul>
+      <li>Panel na pravé straně (nebo collapsible drawer) se seznamem presetů</li>
+      <li>Každý preset má barevné indikátory (checkboxy / barevné puntíky) pro každý nástroj — vizualizují zapnutí/vypnutí nástroje v presetu</li>
+      <li>Kliknutí na preset: načte konfiguraci do sekvenceru</li>
+      <li>Vestavěné presety jsou graficky odlišeny od uživatelských uložených rytmů</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 7 -->
+  <section id="storage">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <div class="section-title">Ukládání dat — localStorage</div>
+    </div>
+
+    <p>Aplikace ukládá veškerá uživatelská data do <code>localStorage</code>. Žádný backend, žádné cookies, žádná registrace.</p>
+
+    <h3>Klíče v localStorage</h3>
+    <table class="feature-table">
+      <thead><tr><th>Klíč</th><th>Typ</th><th>Obsah</th></tr></thead>
+      <tbody>
+        <tr><td><code>rc_current</code></td><td>JSON object</td><td>Aktuální stav sekvenceru (bez uložení jako rytmus)</td></tr>
+        <tr><td><code>rc_settings</code></td><td>JSON object</td><td>Globální nastavení: BPM, volume, vybrané zvuky</td></tr>
+        <tr><td><code>rc_rhythms</code></td><td>JSON array</td><td>Pole uložených uživatelských rytmů</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Uložené rytmy — funkce</h3>
+    <ul>
+      <li><strong>Uložit rytmus:</strong> dialog pro zadání názvu → uloží aktuální stav do <code>rc_rhythms</code></li>
+      <li><strong>Načíst rytmus:</strong> klik v seznamu → aplikuje konfiguraci na sekvencer</li>
+      <li><strong>Přejmenovat:</strong> inline editace názvu (double-click nebo ikona tužky)</li>
+      <li><strong>Smazat:</strong> tlačítko s potvrzením (confirm dialog nebo undo tlačítko 3s)</li>
+      <li><strong>Duplikovat:</strong> vytvoří kopii s názvem "Název (2)"</li>
+      <li>Maximální počet uložených rytmů: <strong>50</strong> (s varováním při přiblížení)</li>
+    </ul>
+
+    <h3>Autoukládání</h3>
+    <p>Aktuální stav sekvenceru (bez názvu) se automaticky ukládá do <code>rc_current</code> při každé změně. Po obnovení stránky se obnoví poslední stav.</p>
+
+    <div class="callout">
+      <strong>Datový limit</strong>
+      localStorage má limit ~5MB. Při 50 rytmech × ~500 bytes = ~25KB — bezpečná rezerva. Přesto implementovat graceful handling chyby při QuotaExceededError.
+    </div>
+  </section>
+
+  <!-- SECTION 8 -->
+  <section id="import-export">
+    <div class="section-header">
+      <div class="section-num">08</div>
+      <div class="section-title">Import / Export</div>
+    </div>
+
+    <p>Umožnit uživateli přenést rytmy mezi zařízeními nebo zálohovat kolekci.</p>
+
+    <h3>Export</h3>
+    <ul>
+      <li>Tlačítko <strong>"Export"</strong> exportuje <em>všechny</em> uložené rytmy jako JSON soubor</li>
+      <li>Název souboru: <code>rhythm-circle-backup-YYYY-MM-DD.json</code></li>
+      <li>Implementace přes <code>Blob</code> + <code>URL.createObjectURL</code> + virtuální <code>&lt;a download&gt;</code></li>
+      <li>JSON musí být čitelný (pretty-printed, <code>JSON.stringify(data, null, 2)</code>)</li>
+    </ul>
+
+    <h3>Import</h3>
+    <ul>
+      <li>Tlačítko <strong>"Import"</strong> → skrytý <code>&lt;input type="file" accept=".json"&gt;</code></li>
+      <li>Validace: kontrola struktury souboru před importem (try/catch + schema check)</li>
+      <li>Možnosti při konfliktu názvů: <em>Přepsat</em> / <em>Přeskočit</em> / <em>Přejmenovat (přidat číslo)</em></li>
+      <li>Po importu: toast notifikace "Importováno N rytmů"</li>
+    </ul>
+
+    <pre><span class="comment">// Export struktura JSON souboru</span>
+{
+  <span class="key">"version"</span>: <span class="val">"1.0"</span>,
+  <span class="key">"exported"</span>: <span class="val">"2026-03-15T12:00:00Z"</span>,
+  <span class="key">"rhythms"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="val">"uuid-string"</span>,
+      <span class="key">"name"</span>: <span class="val">"Můj rytmus"</span>,
+      <span class="key">"createdAt"</span>: <span class="val">"2026-03-01T10:00:00Z"</span>,
+      <span class="key">"bpm"</span>: <span class="val">120</span>,
+      <span class="key">"kick"</span>:  { <span class="key">"subdivisions"</span>: <span class="val">16</span>, <span class="key">"rotation"</span>: <span class="val">0</span>, <span class="key">"beats"</span>: [] },
+      <span class="key">"snare"</span>: { <span class="key">"subdivisions"</span>: <span class="val">16</span>, <span class="key">"rotation"</span>: <span class="val">0</span>, <span class="key">"beats"</span>: [] },
+      <span class="key">"hihat"</span>: { <span class="key">"subdivisions"</span>: <span class="val">16</span>, <span class="key">"rotation"</span>: <span class="val">0</span>, <span class="key">"beats"</span>: [] },
+      <span class="key">"soundKick"</span>:  <span class="val">0</span>,
+      <span class="key">"soundSnare"</span>: <span class="val">0</span>,
+      <span class="key">"soundHihat"</span>: <span class="val">0</span>
+    }
+  ]
+}</pre>
+  </section>
+
+  <!-- SECTION 9 -->
+  <section id="ui">
+    <div class="section-header">
+      <div class="section-num">09</div>
+      <div class="section-title">UI / UX požadavky</div>
+    </div>
+
+    <h3>Layout — desktop (1280px+)</h3>
+    <p>Třísloupcový layout:</p>
+    <ul>
+      <li><strong>Levý panel (220px):</strong> Play/Stop, BPM input, Tap Tempo, Reset, Globální volume</li>
+      <li><strong>Střed (flex 1):</strong> SVG kruh sekvenceru, roztažen do dostupného prostoru</li>
+      <li><strong>Pravý panel (240px):</strong> Presety (vestavěné + uložené), Export, Import</li>
+    </ul>
+    <p><strong>Spodní panel (celá šířka):</strong> Ovládání 3 nástrojů — každý se svým nadpisem, ikonou, výběrem zvuku, subdivizemi a rotací.</p>
+
+    <h3>Klávesové zkratky</h3>
+    <table class="feature-table">
+      <thead><tr><th>Klávesa</th><th>Akce</th></tr></thead>
+      <tbody>
+        <tr><td><code>Space</code></td><td>Play / Stop (a zároveň Tap Tempo při zastavení)</td></tr>
+        <tr><td><code>T</code></td><td>Tap Tempo</td></tr>
+        <tr><td><code>R</code></td><td>Reset aktuálního rytmu (vymazat všechny bity)</td></tr>
+        <tr><td><code>↑</code> / <code>↓</code></td><td>BPM +1 / -1</td></tr>
+        <tr><td><code>Ctrl+S</code></td><td>Uložit aktuální rytmus (otevřít dialog)</td></tr>
+        <tr><td><code>Esc</code></td><td>Zavřít modal/dialog</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Notifikace a feedback</h3>
+    <ul>
+      <li><strong>Toast notifikace</strong> (spodní pravý roh, 3s autoclose) pro: uložení, smazání, import, export</li>
+      <li><strong>Vizuální feedback</strong> na aktivním bitu při průchodu playheadu (scale nebo glow animace)</li>
+      <li><strong>Tap Tempo pulse</strong> — plocha vizuálně reaguje na každý tap (scale 1.05, 100ms)</li>
+      <li><strong>Confirm dialog</strong> při destruktivních akcích (smazání rytmu)</li>
+    </ul>
+
+    <h3>Přístupnost (a11y)</h3>
+    <ul>
+      <li>ARIA labels na interaktivních SVG elementech</li>
+      <li>Keyboard navigace přes Tab pro ovládací prvky</li>
+      <li>Dostatečný kontrast (WCAG AA)</li>
+      <li>Focus visible styly</li>
+    </ul>
+
+    <div class="callout info">
+      <strong>Design systém</strong>
+      Zachovat barevné kódování nástrojů z referenční implementace: <strong style="color:#e84545">Červená = Snare</strong>, <strong style="color:#4caf50">Zelená = Kick</strong>, <strong style="color:#5b9bd5">Modrá = Hi-Hat</strong>. Tmavé nebo světlé téma — dle vlastní volby, ale konzistentní.
+    </div>
+  </section>
+
+  <!-- SECTION 10 -->
+  <section id="data-model">
+    <div class="section-header">
+      <div class="section-num">10</div>
+      <div class="section-title">Datový model</div>
+    </div>
+
+    <p>Kompletní TypeScript-style definice datových struktur pro referenci implementátora:</p>
+
+    <pre><span class="comment">/** Stav jednoho nástroje v sekvenceru */</span>
+<span class="key">interface</span> InstrumentState {
+  subdivisions: <span class="val">number</span>;      <span class="comment">// 2–32, výchozí 16</span>
+  rotation: <span class="val">number</span>;          <span class="comment">// 0 až subdivisions-1</span>
+  beats: <span class="val">boolean</span>[];         <span class="comment">// délka = subdivisions</span>
+  soundIndex: <span class="val">number</span>;       <span class="comment">// 0, 1 nebo 2</span>
+  volume: <span class="val">number</span>;           <span class="comment">// 0.0–1.0</span>
+}
+
+<span class="comment">/** Celý stav sekvenceru */</span>
+<span class="key">interface</span> SequencerState {
+  bpm: <span class="val">number</span>;              <span class="comment">// 20–300</span>
+  isPlaying: <span class="val">boolean</span>;
+  kick:  InstrumentState;
+  snare: InstrumentState;
+  hihat: InstrumentState;
+}
+
+<span class="comment">/** Uložený pojmenovaný rytmus */</span>
+<span class="key">interface</span> SavedRhythm {
+  id: <span class="val">string</span>;              <span class="comment">// crypto.randomUUID()</span>
+  name: <span class="val">string</span>;
+  createdAt: <span class="val">string</span>;       <span class="comment">// ISO 8601</span>
+  updatedAt: <span class="val">string</span>;
+  bpm: <span class="val">number</span>;
+  kick:  Omit&lt;InstrumentState, <span class="val">'volume'</span>&gt;;
+  snare: Omit&lt;InstrumentState, <span class="val">'volume'</span>&gt;;
+  hihat: Omit&lt;InstrumentState, <span class="val">'volume'</span>&gt;;
+}
+
+<span class="comment">/** Root localStorage rc_rhythms */</span>
+<span class="key">type</span> RhythmsStorage = SavedRhythm[];
+
+<span class="comment">/** Root localStorage rc_settings */</span>
+<span class="key">interface</span> Settings {
+  masterVolume: <span class="val">number</span>;    <span class="comment">// 0.0–1.0</span>
+  kickVolume: <span class="val">number</span>;
+  snareVolume: <span class="val">number</span>;
+  hihatVolume: <span class="val">number</span>;
+  kickSound: <span class="val">number</span>;       <span class="comment">// 0, 1, 2</span>
+  snareSound: <span class="val">number</span>;
+  hihatSound: <span class="val">number</span>;
+  lastBpm: <span class="val">number</span>;
+}</pre>
+
+    <h3>Prioritizace požadavků</h3>
+    <table class="feature-table">
+      <thead><tr><th>Funkce</th><th>Priorita</th><th>Poznámka</th></tr></thead>
+      <tbody>
+        <tr><td>Cirkulární sekvencer + playback</td><td><span class="badge badge-must">MUST</span></td><td>Základní funkce</td></tr>
+        <tr><td>Klik na body (toggle beats)</td><td><span class="badge badge-must">MUST</span></td><td>Základní interakce</td></tr>
+        <tr><td>Play/Stop + BPM input</td><td><span class="badge badge-must">MUST</span></td><td>Základní ovládání</td></tr>
+        <tr><td>3 zvuky na nástroj</td><td><span class="badge badge-must">MUST</span></td><td>Klíčová funkce</td></tr>
+        <tr><td>Tap Tempo</td><td><span class="badge badge-must">MUST</span></td><td>Klíčová funkce</td></tr>
+        <tr><td>Uložení rytmů (localStorage)</td><td><span class="badge badge-must">MUST</span></td><td>Klíčová funkce</td></tr>
+        <tr><td>Import / Export JSON</td><td><span class="badge badge-must">MUST</span></td><td>Klíčová funkce</td></tr>
+        <tr><td>Vestavěné presety</td><td><span class="badge badge-should">SHOULD</span></td><td>Referenční funkce</td></tr>
+        <tr><td>Subdivize a rotace</td><td><span class="badge badge-should">SHOULD</span></td><td>Referenční funkce</td></tr>
+        <tr><td>Klávesové zkratky</td><td><span class="badge badge-should">SHOULD</span></td><td>UX zlepšení</td></tr>
+        <tr><td>Individuální volume nástrojů</td><td><span class="badge badge-nice">NICE</span></td><td>Bonusová funkce</td></tr>
+        <tr><td>Duplikace rytmů</td><td><span class="badge badge-nice">NICE</span></td><td>Bonusová funkce</td></tr>
+        <tr><td>Dark/Light přepínač</td><td><span class="badge badge-nice">NICE</span></td><td>Bonusová funkce</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</div>
+
+<footer>
+  <div>Rhythm Circle App — Technické zadání v1.0 — Březen 2026</div>
+  <div>Stack: <span>HTML + CSS + Vanilla JS</span> · Žádné závislosti · Single-file</div>
+</footer>
+
+</body>
+</html>
